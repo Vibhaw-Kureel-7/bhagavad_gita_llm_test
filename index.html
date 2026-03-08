@@ -1,44 +1,498 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>GitaAI</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Unbounded:wght@400;700;900&display=swap" rel="stylesheet"/>
 <style>
-body{
-font-family:Arial;
-text-align:center;
-margin-top:120px;
-background:#fafafa;
-}
+  :root {
+    --black: #0a0a0a;
+    --white: #f5f0e8;
+    --saffron: #ff6b00;
+    --saffron-dim: #cc5500;
+    --gold: #e8c84a;
+    --ink: #1a1a1a;
+  }
 
-button{
-font-size:22px;
-padding:16px 40px;
-border:none;
-background:#ff7a00;
-color:white;
-border-radius:8px;
-cursor:pointer;
-}
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 
-button:hover{
-background:#ff5a00;
-}
+  html { scroll-behavior: smooth; }
+
+  body {
+    background-color: var(--white);
+    color: var(--black);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+
+  /* ── NOISE GRAIN ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.5;
+  }
+
+  /* ── MARQUEE STRIP ── */
+  .marquee-strip {
+    background: var(--black);
+    color: var(--saffron);
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    padding: 10px 0;
+    overflow: hidden;
+    border-bottom: 3px solid var(--saffron);
+    white-space: nowrap;
+  }
+
+  .marquee-inner {
+    display: inline-block;
+    animation: marquee 18s linear infinite;
+  }
+
+  .marquee-inner span {
+    margin: 0 32px;
+    color: var(--gold);
+  }
+
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+
+  /* ── GRID LAYOUT ── */
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 41px);
+  }
+
+  /* ── LEFT PANEL ── */
+  .left-panel {
+    border-right: 3px solid var(--black);
+    padding: 60px 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideLeft 0.7s ease both;
+  }
+
+  @keyframes fadeSlideLeft {
+    from { opacity: 0; transform: translateX(-24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* decorative corner lines */
+  .left-panel::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    width: 120px;
+    height: 120px;
+    border-top: 3px solid var(--saffron);
+    border-left: 3px solid var(--saffron);
+    pointer-events: none;
+  }
+
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid var(--black);
+    background: var(--gold);
+    padding: 6px 14px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    width: fit-content;
+    box-shadow: 3px 3px 0 var(--black);
+    animation: fadeSlideLeft 0.7s 0.1s ease both;
+  }
+
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--saffron);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(0.7); }
+  }
+
+  .hero-block { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 24px; }
+
+  .om-glyph {
+    font-size: 52px;
+    line-height: 1;
+    color: var(--saffron);
+    animation: fadeSlideLeft 0.7s 0.2s ease both;
+    user-select: none;
+    transition: transform 0.3s;
+  }
+  .om-glyph:hover { transform: rotate(-8deg) scale(1.1); }
+
+  h1 {
+    font-family: 'Unbounded', sans-serif;
+    font-size: clamp(52px, 6vw, 88px);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    color: var(--black);
+    animation: fadeSlideLeft 0.7s 0.25s ease both;
+  }
+
+  h1 .highlight {
+    color: var(--saffron);
+    display: block;
+    -webkit-text-stroke: 2px var(--black);
+  }
+
+  .subtitle {
+    font-size: 13px;
+    line-height: 1.7;
+    color: #444;
+    max-width: 380px;
+    border-left: 3px solid var(--saffron);
+    padding-left: 16px;
+    animation: fadeSlideLeft 0.7s 0.35s ease both;
+  }
+
+  /* ── DOWNLOAD BUTTON ── */
+  .btn-wrap {
+    animation: fadeSlideLeft 0.7s 0.45s ease both;
+  }
+
+  .btn-download {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--saffron);
+    color: var(--white);
+    font-family: 'Unbounded', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 20px 34px;
+    border: 3px solid var(--black);
+    box-shadow: 6px 6px 0 var(--black);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform 0.12s, box-shadow 0.12s, background 0.12s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-download::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--gold);
+    transform: translateX(-101%);
+    transition: transform 0.2s ease;
+    z-index: 0;
+  }
+
+  .btn-download:hover::before { transform: translateX(0); }
+
+  .btn-download:hover {
+    box-shadow: 2px 2px 0 var(--black);
+    transform: translate(4px, 4px);
+    color: var(--black);
+  }
+
+  .btn-download > * { position: relative; z-index: 1; }
+
+  .btn-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+
+  .meta {
+    margin-top: 14px;
+    font-size: 11px;
+    color: #888;
+    letter-spacing: 0.08em;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .meta span {
+    padding: 3px 8px;
+    border: 1.5px solid #ccc;
+    background: transparent;
+  }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    background: var(--black);
+    color: var(--white);
+    padding: 60px 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    animation: fadeSlideRight 0.7s ease both;
+  }
+
+  @keyframes fadeSlideRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+
+  /* diagonal accent */
+  .right-panel::before {
+    content: '';
+    position: absolute;
+    top: -80px;
+    right: -80px;
+    width: 300px;
+    height: 300px;
+    border: 40px solid var(--saffron);
+    border-radius: 50%;
+    opacity: 0.08;
+    pointer-events: none;
+  }
+
+  .panel-label {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--saffron);
+    font-weight: 700;
+    animation: fadeSlideRight 0.7s 0.1s ease both;
+  }
+
+  /* ── VERSE CARD ── */
+  .verse-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 20px;
+    animation: fadeSlideRight 0.7s 0.2s ease both;
+  }
+
+  .verse-number {
+    font-family: 'Unbounded', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .verse-text {
+    font-family: 'Space Mono', monospace;
+    font-size: clamp(15px, 1.6vw, 18px);
+    line-height: 1.65;
+    color: var(--white);
+    font-style: italic;
+    border-left: 3px solid var(--saffron);
+    padding-left: 20px;
+    transition: opacity 0.5s ease;
+  }
+
+  .verse-source {
+    font-size: 11px;
+    color: #777;
+    letter-spacing: 0.1em;
+  }
+
+  /* ── FEATURE LIST ── */
+  .features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    margin-top: 12px;
+    animation: fadeSlideRight 0.7s 0.35s ease both;
+  }
+
+  .feature-item {
+    border: 1.5px solid #2a2a2a;
+    padding: 14px 16px;
+    font-size: 11px;
+    line-height: 1.5;
+    color: #aaa;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    position: relative;
+  }
+
+  .feature-item::before {
+    content: attr(data-icon);
+    display: block;
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+
+  .feature-item:hover {
+    background: var(--saffron);
+    color: var(--black);
+    border-color: var(--saffron);
+  }
+
+  .feature-item strong {
+    display: block;
+    color: var(--white);
+    font-size: 12px;
+    margin-bottom: 2px;
+    transition: color 0.15s;
+  }
+
+  .feature-item:hover strong { color: var(--black); }
+
+  /* ── BOTTOM RULE ── */
+  .bottom-strip {
+    background: var(--black);
+    border-top: 3px solid var(--saffron);
+    padding: 12px 52px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: #555;
+    text-transform: uppercase;
+  }
+
+  .bottom-strip a {
+    color: var(--saffron);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .bottom-strip a:hover { color: var(--gold); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    .layout { grid-template-columns: 1fr; }
+    .left-panel { border-right: none; border-bottom: 3px solid var(--black); padding: 40px 28px; }
+    .right-panel { padding: 40px 28px; }
+    .bottom-strip { padding: 12px 28px; flex-direction: column; gap: 6px; text-align: center; }
+    .features { grid-template-columns: 1fr; }
+  }
 </style>
-
 </head>
-
 <body>
 
-<h1>🕉 GitaAI</h1>
+<!-- MARQUEE -->
+<div class="marquee-strip" aria-hidden="true">
+  <div class="marquee-inner">
+    <span>॥ भगवद्गीता ॥</span> OFFLINE AI &nbsp;·&nbsp; NO INTERNET NEEDED &nbsp;·&nbsp;
+    <span>॥ भगवद्गीता ॥</span> WISDOM ON-DEVICE &nbsp;·&nbsp; TRAINED ON SACRED TEXT &nbsp;·&nbsp;
+    <span>॥ भगवद्गीता ॥</span> OFFLINE AI &nbsp;·&nbsp; NO INTERNET NEEDED &nbsp;·&nbsp;
+    <span>॥ भगवद्गीता ॥</span> WISDOM ON-DEVICE &nbsp;·&nbsp; TRAINED ON SACRED TEXT &nbsp;·&nbsp;
+  </div>
+</div>
 
-<p>Offline AI trained on Bhagavad Gita chapters</p>
+<!-- MAIN GRID -->
+<div class="layout">
 
-<a href="https://github.com/Vibhaw-Kureel-7/bhagavad_gita_llm_test/releases/download/Gita_LLM/GitaAI_1.0.0_x64-setup.exe" download>
-<button>Download for Windows</button>
-</a>
+  <!-- LEFT -->
+  <div class="left-panel">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      Now Available — v1.0
+    </div>
 
-<p>Version 1.0 • 314 MB • Works offline</p>
+    <div class="hero-block">
+      <div class="om-glyph">ॐ</div>
+      <h1>
+        Gita
+        <span class="highlight">AI</span>
+      </h1>
+      <p class="subtitle">
+        An offline AI trained entirely on the Bhagavad Gita.
+        Ask anything — dharma, karma, purpose — and receive answers
+        rooted in one of humanity's oldest wisdom texts.
+        No cloud. No tracking. Just knowledge.
+      </p>
+
+      <div class="btn-wrap">
+        <a class="btn-download" href="https://github.com/Vibhaw-Kureel-7/bhagavad_gita_llm_test/releases/download/Gita_LLM/GitaAI_1.0.0_x64-setup.exe" download>
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Download for Windows
+        </a>
+        <div class="meta">
+          <span>VERSION 1.0</span>
+          <span>314 MB</span>
+          <span>WINDOWS x64</span>
+          <span>OFFLINE</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- padding filler -->
+    <div></div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel">
+    <div class="panel-label">Daily Verse ·&nbsp; Chapter 2, Verse 47</div>
+
+    <div class="verse-card">
+      <div class="verse-number">Bhagavad Gita · 2.47</div>
+      <blockquote class="verse-text" id="verse">
+        "You have a right to perform your prescribed duties,
+        but you are not entitled to the fruits of your actions.
+        Never consider yourself the cause of the results,
+        and never be attached to not doing your duty."
+      </blockquote>
+      <div class="verse-source">— Krishna to Arjuna, Kurukshetra</div>
+    </div>
+
+    <div class="features">
+      <div class="feature-item" data-icon="🔒">
+        <strong>Fully Offline</strong>
+        Runs 100% on-device. No data leaves your machine.
+      </div>
+      <div class="feature-item" data-icon="📖">
+        <strong>All 18 Chapters</strong>
+        Trained on every shloka of the Gita.
+      </div>
+      <div class="feature-item" data-icon="⚡">
+        <strong>Fast Inference</strong>
+        Lightweight model, instant responses.
+      </div>
+      <div class="feature-item" data-icon="🆓">
+        <strong>Free Forever</strong>
+        Open source. No subscription.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER STRIP -->
+<div class="bottom-strip">
+  <span>GitaAI © 2024 — Open Source</span>
+  <a href="https://github.com/Vibhaw-Kureel-7/bhagavad_gita_llm_test" target="_blank" rel="noopener">View on GitHub ↗</a>
+</div>
 
 </body>
 </html>
